@@ -28,6 +28,8 @@ const Sidebar = ({ sidebar, setSidebar }) => {
   const { user } = useUser();
   const { signOut, openUserProfile } = useClerk();
 
+  const userPlan = user?.publicMetadata?.plan || "free";
+
   return (
     <div
       className={`w-60 h-full bg-white border-r border-gray-200 flex flex-col justify-between items-center
@@ -81,7 +83,15 @@ const Sidebar = ({ sidebar, setSidebar }) => {
           />
           <div>
             <h1 className="text-sm font-medium">{user?.fullName}</h1>
-            <p className="text-xs text-gray-500">Pro Plan • Premium</p>
+            <span
+              className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                userPlan === "premium"
+                  ? "bg-purple-100 text-purple-700"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {userPlan === "premium" ? "Premium Plan" : "Free Plan"}
+            </span>
           </div>
         </div>
         <LogOut
