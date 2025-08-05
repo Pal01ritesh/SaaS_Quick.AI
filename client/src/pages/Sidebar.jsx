@@ -1,5 +1,5 @@
 import React from "react";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { Protect, useUser, useClerk } from "@clerk/clerk-react";
 import {
   Eraser,
   FileText,
@@ -71,7 +71,7 @@ const Sidebar = ({ sidebar, setSidebar }) => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center w-full border-b border-gray-200 p-4">
+      <div className="flex justify-between items-center w-full border-t border-gray-200 p-4">
         <div
           onClick={openUserProfile}
           className="flex gap-2 items-center cursor-pointer"
@@ -83,15 +83,14 @@ const Sidebar = ({ sidebar, setSidebar }) => {
           />
           <div>
             <h1 className="text-sm font-medium">{user?.fullName}</h1>
-            <span
-              className={`text-xs font-semibold px-2 py-1 rounded-full ${
+            <p className={`text-xs font-semibold px-2 py-1 rounded-full ${
                 userPlan === "premium"
                   ? "bg-purple-100 text-purple-700"
                   : "bg-gray-100 text-gray-600"
               }`}
             >
               {userPlan === "premium" ? "Premium Plan" : "Free Plan"}
-            </span>
+            </p>
           </div>
         </div>
         <LogOut
