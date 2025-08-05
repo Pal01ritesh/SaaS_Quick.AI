@@ -77,60 +77,65 @@ export const generateArticle = async (request, response) => {
 
 
 
+// import fs from 'fs';
+// import pdf from 'pdf-parse';
+// import sql from '../config/db.js';
+// import { model } from '../config/ai.js';
 
-    
 export const resumeReview = async (request, response) => {
   try {
     const { userId } = request.auth();
     const resume = request.file;
     const plan = request.plan;
 
-    console.log(plan);
-
-
     if (plan !== 'premium') {
       return response.status(403).json({
         success: false,
-        message: 'Feature only available for premium users. Upgrade to continue.'
+        message: 'Feature only available for premium users. Upgrade to continue.',
       });
     }
 
+    if (!resume || !resume.path) {
+      return response.status(400).json({
+        success: false,
+        message: 'No resume file uploaded.',
+      });
+    }
 
-    if(resume.size > 5*1024*1024){
-      return response.json({
-        success : false,
-        message : "Resume file size exceeds allowed size (5MB)."
-      })
+    if (resume.size > 5 * 1024 * 1024) {
+      return response.status(400).json({
+        success: false,
+        message: 'Resume file size exceeds allowed size (5MB).',
+      });
     }
 
     const dataBuffer = fs.readFileSync(resume.path);
     const pdfdata = await pdf(dataBuffer);
 
-    const prompt = `Review the following and provide constructive feedback on its strength, weakness, and areas of improvement. Resume content:\n\n${pdfdata.text}`
+    const prompt = `Review the following resume and provide detailed, constructive feedback including strengths, weaknesses, and suggested improvements:\n\n${pdfdata.text}`;
 
-
-    const response = await model.generateContent({
+    const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 1000
-      }
+        maxOutputTokens: 1000,
+      },
     });
 
     const content = result.response.text();
 
     await sql`
       INSERT INTO creations (user_id, prompt, content, type)
-      VALUES (${userId}, 'Review the uploaded resume, , ${content}, 'resume-review')
+      VALUES (${userId}, ${'Review the uploaded resume'}, ${content}, 'resume-review')
     `;
 
-    response.json({ success: true, content  });
+    response.json({ success: true, content });
+
   } catch (error) {
-    console.error('AI Generation Error:', error.message);
+    console.error('Resume Review Error:', error.message);
     response.status(500).json({
       success: false,
-      message: 'Something went wrong while generating the image.'
+      message: 'Something went wrong while reviewing the resume.',
     });
   }
 };
-  

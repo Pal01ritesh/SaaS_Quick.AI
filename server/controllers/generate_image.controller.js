@@ -60,48 +60,43 @@ export const generateImage = async (request, response) => {
 
 // Background remover
 
-
 export const removeImageBackground = async (request, response) => {
-    try {
-      const { userId } = request.auth();
-      const { image } = request.file;
-      const plan = request.plan;
-  
-      console.log(plan);
+  try {
+    const { userId } = request.auth();
+    const image = request.file;
+    const plan = request.plan;
 
-  
-      if (plan !== 'premium') {
-        return response.status(403).json({
-          success: false,
-          message: 'Feature only available for premium users. Upgrade to continue.'
-        });
-      }
-  
-  
-      const { secure_url } = await cloudinary.uploader.upload(image.path, {
-        transformation : [
-            {
-                effect : 'background_removal',
-                background_removal : 'remove_the_background'
-            }
-        ]
-      });
-  
-      await sql`
-        INSERT INTO creations (user_id, prompt, content, type)
-        VALUES (${userId}, "Remove background from image" , ${secure_url}, 'image')
-      `;
-  
-      response.json({ success: true, content: secure_url });
-    } catch (error) {
-      console.error('AI Generation Error:', error.message);
-      response.status(500).json({
+    if (plan !== 'premium') {
+      return response.status(403).json({
         success: false,
-        message: 'Something went wrong while generating the image.'
+        message: 'Feature only available for premium users. Upgrade to continue.',
       });
     }
-  };
-  
+
+    const { secure_url } = await cloudinary.uploader.upload(image.path, {
+      transformation: [
+        {
+          effect: 'background_removal',
+          background_removal: 'remove_the_background',
+        },
+      ],
+    });
+
+    await sql`
+      INSERT INTO creations (user_id, prompt, content, type)
+      VALUES (${userId}, ${'Remove background from image'}, ${secure_url}, 'image')
+    `;
+
+    response.json({ success: true, content: secure_url });
+  } catch (error) {
+    console.error('Background Removal Error:', error.message);
+    response.status(500).json({
+      success: false,
+      message: 'Something went wrong while removing background.',
+    });
+  }
+};
+
 
 // Object remover
 
@@ -112,7 +107,7 @@ export const removeImage = async (request, response) => {
     try {
       const { userId } = request.auth();
       const { object } = request.body;
-      const { image } = request.file;
+      const image  = request.file;
       const plan = request.plan;
   
       console.log(plan);

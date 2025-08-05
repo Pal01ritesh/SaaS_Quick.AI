@@ -12,7 +12,7 @@ export const generateBlogTitle = async (request, response) => {
     const plan = request.plan;
     const free_usage = request.free_usage;
 
-    if (!prompt || !length) {
+    if (!prompt) {
       return response.status(400).json({
         success: false,
         message: 'Missing prompt or length in request body.'
