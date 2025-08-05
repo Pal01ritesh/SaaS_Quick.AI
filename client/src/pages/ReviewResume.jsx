@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import MarkDown from "react-markdown";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
@@ -19,7 +20,7 @@ const ReviewResume = () => {
       setLoading(true);
 
       const formData = new FormData();
-      formData.append('image', input);
+      formData.append('resume', input);
 
       const { data } = await axios.post(
         "/api/ai/resume-review",

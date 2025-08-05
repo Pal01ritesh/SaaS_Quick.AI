@@ -76,12 +76,6 @@ export const generateArticle = async (request, response) => {
 // Resume Review
 
 
-
-// import fs from 'fs';
-// import pdf from 'pdf-parse';
-// import sql from '../config/db.js';
-// import { model } from '../config/ai.js';
-
 export const resumeReview = async (request, response) => {
   try {
     const { userId } = request.auth();

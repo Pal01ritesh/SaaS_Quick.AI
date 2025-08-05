@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { dummyCreationData } from "../assets/assets";
 import { Gem, Sparkles } from "lucide-react";
-import { Protect, useAuth } from "@clerk/clerk-react";
+import { Protect, useAuth, useUser } from "@clerk/clerk-react";
 import CreationItems from "../components/CreationItems";
 import axios from 'axios';
 import toast from "react-hot-toast";
@@ -11,8 +11,9 @@ axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
 const Dashboard = () => {
   const [creations, setCreations] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const { getToken } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const { getToken } = useAuth();
+  const { user } = useUser();
   
 
   const getDashboardData = async () => {
@@ -37,7 +38,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     getDashboardData();
-  }, []);
+    // Debug: Log user metadata to see what plan is stored
+    console.log('User metadata:', user?.publicMetadata);
+    console.log('User plan:', user?.publicMetadata?.plan);
+  }, [user]);
 
   return (
     <div className="h-full overflow-y-scroll p-6">
@@ -58,7 +62,7 @@ const Dashboard = () => {
           <div className="text-slate-600">
             <p className="text-sm">Active Plan</p>
             <p className="text-xl font-semibold">
-              <Protect plan="premium" fallback="Free">Premium</Protect>
+              {user?.publicMetadata?.plan === 'premium' ? 'Premium' : 'Free'}
             </p>
           </div>
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FF61C5] to-[#9E53EE] text-white flex justify-center items-center">

@@ -24,7 +24,7 @@ const RemoveObject = () => {
       }
       const formData = new FormData();
       formData.append('image', input);
-      formData.append('image', object);
+      formData.append('object', object);
 
 
       const { data } = await axios.post(
@@ -43,6 +43,8 @@ const RemoveObject = () => {
     } catch (error) {
       toast.error(error.message || "Failed to process image.");
     }
+
+    setLoading(false)
   };
 
   return (

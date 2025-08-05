@@ -102,47 +102,46 @@ export const removeImageBackground = async (request, response) => {
 
 
 
-  
-export const removeImage = async (request, response) => {
-    try {
-      const { userId } = request.auth();
-      const { object } = request.body;
-      const image  = request.file;
-      const plan = request.plan;
-  
-      console.log(plan);
+export const removeImage = async (req, res) => {
+  try {
+    const { userId } = req.auth();
+    const image = req.file; 
+    const { object } = req.body; 
+    const plan = req.plan;
 
-  
-      if (plan !== 'premium') {
-        return response.status(403).json({
-          success: false,
-          message: 'Feature only available for premium users. Upgrade to continue.'
-        });
-      }
-  
-  
-      const { public_id } = await cloudinary.uploader.upload(image.path);
-
-      const image_url = cloudinary.url(public_id , {
-        transformation: [{effect: `gen_remove:${object}`}],
-        resource_type: 'image'
-      })
-  
-      await sql`
-        INSERT INTO creations (user_id, prompt, content, type)
-        VALUES (${userId}, ${`Removed ${object} from image`} , ${image_url}, 'image')
-      `;
-  
-      response.json({ success: true, content: image_url });
-    } catch (error) {
-      console.error('AI Generation Error:', error.message);
-      response.status(500).json({
+    if (plan !== "premium") {
+      return res.status(403).json({
         success: false,
-        message: 'Something went wrong while generating the image.'
+        message: "Feature only available for premium users. Upgrade to continue.",
       });
     }
-  };
 
+    if (!object) {
+      return res.status(400).json({
+        success: false,
+        message: "Please specify an object name to remove.",
+      });
+    }
 
+    const uploadResult = await cloudinary.uploader.upload(image.path, {
+      transformation: [
+        {
+          effect: `gen_remove:prompt_the ${object}`,
+        },
+      ],
+    });
 
+    await sql`
+      INSERT INTO creations (user_id, prompt, content, type)
+      VALUES (${userId}, ${`Removed object: ${object}`}, ${uploadResult.secure_url}, 'image')
+    `;
 
+    return res.json({ success: true, content: uploadResult.secure_url });
+  } catch (error) {
+    console.error("Object removal with gen_remove error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to remove object from image.",
+    });
+  }
+};
